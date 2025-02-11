@@ -45,6 +45,12 @@ int main()
 
   char * command_string = (char*) malloc( MAX_COMMAND_SIZE );
 
+  // Counter to count commands entered
+  int counter = 0;
+
+  // Array to store history of commands
+  char history[10][MAX_COMMAND_SIZE];
+
   while( 1 )
   {
     // Print out the msh prompt
@@ -57,9 +63,14 @@ int main()
     // is no input
     while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
 
+    // Copying inputs over to history array
+    strcpy(history[counter % 10], command_string);
+    counter++;
+
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
-
+    
+  
     for( int i = 0; i < MAX_NUM_ARGUMENTS; i++ )
     {
       token[i] = NULL;
@@ -100,6 +111,17 @@ int main()
     else if(strcmp(token[0], "cd") == 0){
       chdir(token[1]);
     }
+    //printing off the history of the last 10 commands
+    else if(strcmp(token[0], "history") == 0){
+
+      for(int i = 0; i < counter; i++){
+
+        if( i >= 10){
+          break;
+        }
+        printf("[%d]: %s", i, history[i % 10]);
+      }
+    }
     
     else{
       //handles not built in commands
@@ -137,6 +159,7 @@ int main()
     }
 
     free( head_ptr );
+
 
   }
 
