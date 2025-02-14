@@ -64,8 +64,18 @@ int main()
     while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
 
     // Copying inputs over to history array
-    strcpy(history[counter % 10], command_string);
+    if(counter < 10){
+    strcpy(history[counter], command_string);
     counter++;
+    }
+    else{
+      for(int i = 0; i < 9; i++){
+        strcpy(history[i], history[i + 1]);
+      }
+
+      strcpy(history[9], command_string);
+    }
+
 
     /* Parse input */
     char *token[MAX_NUM_ARGUMENTS];
@@ -116,12 +126,15 @@ int main()
 
       for(int i = 0; i < counter; i++){
 
-        if( i >= 10){
-          break;
-        }
-        printf("[%d]: %s", i, history[i % 10]);
+        printf("[%d]: %s", i, history[i]);
+        
+        
       }
     }
+
+    //else if(strmp(token[0], "!") == 0){
+
+    //}
     
     else{
       //handles not built in commands
