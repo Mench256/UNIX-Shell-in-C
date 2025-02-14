@@ -39,6 +39,7 @@
 #define MAX_COMMAND_SIZE 128    // The maximum command-line size
 
 #define MAX_NUM_ARGUMENTS 13     // Mav shell currently only supports one argument
+char ex = '!';
 
 int main()
 {
@@ -63,16 +64,39 @@ int main()
     // is no input
     while( !fgets (command_string, MAX_COMMAND_SIZE, stdin) );
 
-    // Copying inputs over to history array
-    if(counter < 10){
-    strcpy(history[counter], command_string);
-    counter++;
+    if(command_string[0] == ' ' || command_string[0] == '\n' || command_string[0] == '\t'){
+      continue;
     }
-    else{
-      for(int i = 0; i < 9; i++){
-        strcpy(history[i], history[i + 1]);
+        // Implementing !#
+
+    // Getting value from number after !
+    if(command_string[0] == ex){
+      
+      int p_command = 0;
+
+      sscanf(command_string, "!%d", &p_command);
+
+      if(p_command >= 0){
+        strncpy(command_string, history[p_command], MAX_COMMAND_SIZE);
       }
 
+    }
+
+    // Copying inputs over to history array
+    // If counter is less than 10 copy as normal
+    if(counter < 10){
+
+      strcpy(history[counter], command_string);
+
+    counter++;
+    }
+    // If count is over 10 shift elements over
+    // and then insert most recent command
+    else{
+      for(int i = 0; i < 9; i++){
+
+        strcpy(history[i], history[i + 1]);
+      }
       strcpy(history[9], command_string);
     }
 
@@ -113,15 +137,18 @@ int main()
 
        
     if(strcmp(token[0], "quit") == 0){
+
       exit(0);
     }
     else if(strcmp(token[0], "exit") == 0){
+
       exit(0);
     }
     else if(strcmp(token[0], "cd") == 0){
+
       chdir(token[1]);
     }
-    //printing off the history of the last 10 commands
+    // Printing off the history of the last 10 commands
     else if(strcmp(token[0], "history") == 0){
 
       for(int i = 0; i < counter; i++){
@@ -131,11 +158,6 @@ int main()
         
       }
     }
-
-    //else if(strmp(token[0], "!") == 0){
-
-    //}
-    
     else{
       //handles not built in commands
       int pid = fork();
