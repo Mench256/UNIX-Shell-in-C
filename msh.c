@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #define WHITESPACE " \t\n"      // We want to split our command line up into tokens
                                 // so we need to define what delimits our tokens.
@@ -39,7 +40,9 @@
 #define MAX_COMMAND_SIZE 128    // The maximum command-line size
 
 #define MAX_NUM_ARGUMENTS 13     // Mav shell currently only supports one argument
+
 char ex = '!';
+char redir = '>';
 
 int main()
 {
@@ -159,12 +162,34 @@ int main()
       }
     }
     else{
+
       //handles not built in commands
       int pid = fork();
 
 
       //if equals zero then we are in child process
       if(pid == 0){
+
+
+      // Implementing > command
+      if (token[1] != NULL && strchr(token[1], redir) != NULL) {
+
+        int file = open(token[2], O_RDWR | O_CREAT);
+    
+          if (file < 0) {
+
+            perror("Cannot open file!");
+            exit(0);
+
+          }
+
+    dup2(file, 1);
+    close(file);
+    
+    token[1] = NULL; 
+    token[2] = NULL; 
+
+      }
         int ret = execvp(token[0], &token[0]);
 
         if(ret == -1){
