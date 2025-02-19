@@ -155,15 +155,17 @@ int main()
         token_count++;
     }
 
-       
+    // Implementing quit
     if(strcmp(token[0], "quit") == 0){
 
       exit(0);
     }
+    // Implementing exit
     else if(strcmp(token[0], "exit") == 0){
 
       exit(0);
     }
+    // Implementing cd
     else if(strcmp(token[0], "cd") == 0){
 
       chdir(token[1]);
@@ -188,7 +190,8 @@ int main()
       if(pid == 0){
 
 
-      // Implementing pipes
+      // Could not figure out how to implement pipes 
+      // Partial code is below
       /*
       if(token[1] != NULL && strchr(token[1], pd) != NULL){
           int temp[2];
@@ -207,7 +210,6 @@ int main()
 
             write(temp[1], &token[2], sizeof(token[2]));
             close(temp[1]);
-
 
           }
       }
