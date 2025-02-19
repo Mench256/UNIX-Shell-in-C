@@ -41,8 +41,11 @@
 
 #define MAX_NUM_ARGUMENTS 13     // Mav shell currently only supports one argument
 
+
+// Global Variables
 char ex = '!';
 char redir = '>';
+char pd = '|';
 
 int main()
 {
@@ -54,6 +57,20 @@ int main()
 
   // Array to store history of commands
   char history[10][MAX_COMMAND_SIZE];
+
+
+  // Blocking SIGINT and SIGTSTP
+  sigset_t newmask;
+
+  sigemptyset (&newmask);
+  sigaddset(&newmask, SIGINT);
+  sigaddset(&newmask, SIGTSTP);
+
+  if(sigprocmask(SIG_BLOCK, &newmask, NULL) < 0){
+
+    perror("sigprocmask");
+  }
+
 
   while( 1 )
   {
@@ -163,15 +180,42 @@ int main()
     }
     else{
 
-      //handles not built in commands
+      // Handles not built in commands
       int pid = fork();
 
 
-      //if equals zero then we are in child process
+      // If equals zero then we are in child process
       if(pid == 0){
 
 
-      // Implementing > command
+      // Implementing pipes
+      /*
+      if(token[1] != NULL && strchr(token[1], pd) != NULL){
+          int temp[2];
+
+          if(pipe(temp) < 0){
+            perror("Cannot open pipe!\n");
+            exit(0);
+          }
+          
+          int pid_p = fork();
+
+          if(pid_p == 0){
+            
+            read(temp[0], &token[0], sizeof(token[0]));
+            close(temp[0]);
+
+            write(temp[1], &token[2], sizeof(token[2]));
+            close(temp[1]);
+
+
+          }
+      }
+      */
+
+
+
+      // Implementing redirect command
       if (token[1] != NULL && strchr(token[1], redir) != NULL) {
 
         int file = open(token[2], O_RDWR | O_CREAT);
@@ -185,7 +229,7 @@ int main()
 
     dup2(file, 1);
     close(file);
-    
+
     token[1] = NULL; 
     token[2] = NULL; 
 
