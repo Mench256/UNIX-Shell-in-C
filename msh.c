@@ -1,3 +1,5 @@
+// This project was completed by me as part of a CSE assignment using starter code provided by Professor Trevor Bakker.
+
 // The MIT License (MIT)
 // 
 // Copyright (c) 2023 Trevor Bakker 
@@ -185,35 +187,32 @@ int main()
       // Handles not built in commands
       int pid = fork();
 
-
+      // HERE WE ARE IMPLEMENTING THE PIPE COMMAND
       // If equals zero then we are in child process
       if(pid == 0){
 
-
-      // Could not figure out how to implement pipes 
-      // Partial code is below
-      /*
-      if(token[1] != NULL && strchr(token[1], pd) != NULL){
-          int temp[2];
-
-          if(pipe(temp) < 0){
-            perror("Cannot open pipe!\n");
-            exit(0);
-          }
+        // Looping through to look for '|'
+        int pipe_index = -1;
+        for(int i = 0; i < token_count; i++){
           
-          int pid_p = fork();
+          if(token[i] != NULL && strcmp(token[i], pd) == 0){
+              pipe_index = i;
+              break;
+          }
 
-          if(pid_p == 0){
-            
-            read(temp[0], &token[0], sizeof(token[0]));
-            close(temp[0]);
+          int pipe(int filedes[2]);
 
-            write(temp[1], &token[2], sizeof(token[2]));
-            close(temp[1]);
+          int pid2 = fork();
+
+          if(pid2 == 0){
+            // Inside child
+
 
           }
-      }
-      */
+
+
+        }
+
 
 
 
