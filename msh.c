@@ -193,27 +193,45 @@ int main()
 
         // Looping through to look for '|'
         int pipe_index = -1;
+        int pipe_flag = 0;
+        char left[MAX_COMMAND_SIZE];
+        char right[MAX_COMMAND_SIZE];
+
+        // Trying to find pipe index and copy tokens before and after pipe
         for(int i = 0; i < token_count; i++){
-          
+
           if(token[i] != NULL && strcmp(token[i], pd) == 0){
               pipe_index = i;
-              break;
+              pipe_flag = 1;
+          }
+          if(pipe_flag == 0 && token[i] != NULL){
+            left[i] = token[i];
+          }
+          if(pipe_flag == 1 && token[i] != NULL){
+            right[i] = token[i];
           }
 
+        }
+
           int pipe(int filedes[2]);
+          // Writing to first end of pipe
+          dup2(filedes[1], STDOUT, FILENO);
+          // Closing pipe
+          close(filedes[0]);
+          close(filedes[1]);
+          // Executing 
+          execvp(left[0], left);
 
           int pid2 = fork();
 
           if(pid2 == 0){
-            // Inside child
+            // Inside second child
 
-
+            dup2(filedes[0], STDIN_FILENO);
+            close(filedes[1]);
+            close(filedes[0]);
+            execvp(right[0], right);
           }
-
-
-        }
-
-
 
 
       // Implementing redirect command
