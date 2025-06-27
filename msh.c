@@ -1,5 +1,3 @@
-// This project was completed by me as part of a CSE assignment using starter code provided by Professor Trevor Bakker.
-
 // The MIT License (MIT)
 // 
 // Copyright (c) 2023 Trevor Bakker 
@@ -48,6 +46,9 @@
 char ex = '!';
 char redir = '>';
 char pd = '|';
+int filedes[2];
+char* left[MAX_COMMAND_SIZE];
+char* right[MAX_COMMAND_SIZE];
 
 int main()
 {
@@ -183,56 +184,44 @@ int main()
       }
     }
     else{
+      /*--------------------------------------------------------------------------------------------------------------*/
+      // Finding index of |
+      int pipe_index = -1;
+      for (int i = 0; i < token_count; i++) {
+        if (token[i] != NULL && strcmp(token[i], "|") == 0) {
+          pipe_index = i;
+          break;
+        }
+      } 
+      // Copying to left token array
+      int l = 0;
+      for (int i = 0; i < pipe_index; i++) {
+        left[l++] = token[i];
+      }
+      left[l] = NULL;
+      // Copying to right token array
+      int r = 0;
+      for (int i = pipe_index + 1; i < token_count; i++) {
+        right[r++] = token[i];
+      }
+      right[r] = NULL;
+      // Opening Pip
+      pipe(filedes);
+
+
+      /*--------------------------------------------------------------------------------------------------------------------------*/
 
       // Handles not built in commands
       int pid = fork();
 
-      // HERE WE ARE IMPLEMENTING THE PIPE COMMAND
       // If equals zero then we are in child process
       if(pid == 0){
 
-        // Looping through to look for '|'
-        int pipe_index = -1;
-        int pipe_flag = 0;
-        char left[MAX_COMMAND_SIZE];
-        char right[MAX_COMMAND_SIZE];
-
-        // Trying to find pipe index and copy tokens before and after pipe
-        for(int i = 0; i < token_count; i++){
-
-          if(token[i] != NULL && strcmp(token[i], pd) == 0){
-              pipe_index = i;
-              pipe_flag = 1;
-          }
-          if(pipe_flag == 0 && token[i] != NULL){
-            left[i] = token[i];
-          }
-          if(pipe_flag == 1 && token[i] != NULL){
-            right[i] = token[i];
-          }
-
-        }
-
-          int pipe(int filedes[2]);
-          // Writing to first end of pipe
-          dup2(filedes[1], STDOUT, FILENO);
-          // Closing pipe
-          close(filedes[0]);
-          close(filedes[1]);
-          // Executing 
-          execvp(left[0], left);
-
-          int pid2 = fork();
-
-          if(pid2 == 0){
-            // Inside second child
-
-            dup2(filedes[0], STDIN_FILENO);
-            close(filedes[1]);
-            close(filedes[0]);
-            execvp(right[0], right);
-          }
-
+        // Opening writing end of pipe
+        dup2(filedes[1], STDOUT_FILENO);
+        close(filedes[0]);
+        close(filedes[1]);
+        execvp(left[0], left);
 
       // Implementing redirect command
       if (token[1] != NULL && strchr(token[1], redir) != NULL) {
@@ -262,7 +251,25 @@ int main()
       }
       else if(pid > 0){
 
-        wait(NULL);
+        int pid2 = fork();
+
+        if(pid2 == 0){
+          // Inside Second child
+
+          // Opening reading end of pipe
+          dup2(filedes[0], STDIN_FILENO);
+          close(filedes[1]);
+          close(filedes[0]);
+          execvp(right[0], right);
+          perror("Right command");
+          exit(1);
+        }
+
+        // Closing pipe and waiting
+        close(filedes[0]);
+        close(filedes[1]);
+        waitpid(pid, NULL, 0);
+        waitpid(pid2, NULL, 0);
 
       }
       else{
