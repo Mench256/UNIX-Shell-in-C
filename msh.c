@@ -45,7 +45,6 @@
 // Global Variables
 char ex = '!';
 char pd = '|';
-int filedes[2];
 char* left[MAX_COMMAND_SIZE];
 char* right[MAX_COMMAND_SIZE];
 
@@ -184,8 +183,8 @@ int main()
         
       }
     }
-    else{
-
+    else{ // moved else to this position for testing
+      
       int redir_index = -1;
       for(int i = 0; i < token_count; i++){
         if(token[i] != NULL && strcmp(token[i], ">") == 0){
@@ -203,7 +202,8 @@ int main()
           pipe_index = i;
           break;
         }
-      } 
+      }
+      if(pipe_index != -1){ 
       // Copying to left token array
       int l = 0;
       for (int i = 0; i < pipe_index; i++) {
@@ -216,9 +216,50 @@ int main()
         right[r++] = token[i];
       }
       right[r] = NULL;
-      // Opening Pipe
+
+      // Opening pipe
+      int filedes[2];
       pipe(filedes);
 
+      pid_t pid1 = fork();
+
+      if(pid1 == -1){
+        perror("Fork Failed!");
+        exit(EXIT_FAILURE);
+      }
+      if(pid1 == 0){
+        close(filedes[0]);
+        dup2(filedes[1], STDOUT_FILENO);
+        close(filedes[1]);
+
+        execvp(left[0], left);
+      }
+
+      pid_t pid2 = fork();
+
+      if(pid2 == -1){
+        perror("Fork Failed!");
+        close(filedes[0]);
+        close(filedes[1]);
+        waitpid(pid1, NULL, 0);
+        exit(EXIT_FAILURE);
+      }
+      if(pid2 == 0){
+        close(filedes[1]);
+        dup2(filedes[0], STDIN_FILENO);
+        close(filedes[0]);
+        
+        execvp(right[0], right);
+      }
+
+      close(filedes[0]);
+      close(filedes[1]);
+      waitpid(pid2, NULL, 0);
+      waitpid(pid2, NULL, 0);
+
+      continue;
+    }
+    //else{
 
       /*--------------------------------------------------------------------------------------------------------------------------*/
 
@@ -229,31 +270,23 @@ int main()
       if(pid == 0){
         
       if(redir_index != -1){
+
         int file = open(token[redir_index + 1], O_RDWR | O_CREAT);
     
-          if (file < 0) {
+          if (file < 0){
 
             perror("Cannot open file!");
             exit(0);
 
           }
 
-    dup2(file, 1);
-    close(file);
-    token[redir_index + 1] = NULL;
-    token[redir_index] = NULL;
+          dup2(file, 1);
+          close(file);
+          token[redir_index + 1] = NULL;
+          token[redir_index] = NULL;
 
       }
-      if(pipe_index != -1){
-        // Opening writing end of pipe
-        dup2(filedes[1], STDOUT_FILENO);
-        close(filedes[0]);
-        close(filedes[1]);
-        execvp(left[0], left);
-        perror("Left command");
-        exit(1);
-      }
-
+      
         int ret = execvp(token[0], &token[0]);
 
         if(ret == -1){
@@ -261,34 +294,12 @@ int main()
           exit(1);
         }
       }
+  
       else if(pid > 0){
-
-        if(pipe_index != -1){
-        int pid2 = fork();
-
-        if(pid2 == 0){
-          // Inside Second child
-
-          // Opening reading end of pipe
-          dup2(filedes[0], STDIN_FILENO);
-          close(filedes[1]);
-          close(filedes[0]);
-          execvp(right[0], right);
-          perror("Right command");
-          exit(1);
-          }
+        sleep(1);
         
-        }
-        else{
-        // Closing pipe and waiting
-        close(filedes[0]);
-        close(filedes[1]);
-        waitpid(pid, NULL, 0);
-        waitpid(pid2, NULL, 0);
-        }
-        
+        }       
 
-      }
       else{
         perror("Fork failed: ");
       }
