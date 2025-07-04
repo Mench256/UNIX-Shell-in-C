@@ -44,11 +44,12 @@
 
 // Global Variables
 char ex = '!';
-char redir = '>';
 char pd = '|';
 int filedes[2];
 char* left[MAX_COMMAND_SIZE];
 char* right[MAX_COMMAND_SIZE];
+
+
 
 int main()
 {
@@ -184,6 +185,16 @@ int main()
       }
     }
     else{
+
+      int redir_index = -1;
+      for(int i = 0; i < token_count; i++){
+        if(token[i] != NULL && strcmp(token[i], ">") == 0){
+          redir_index = i;
+          break;
+        }
+      }
+
+
       /*--------------------------------------------------------------------------------------------------------------*/
       // Finding index of |
       int pipe_index = -1;
@@ -205,7 +216,7 @@ int main()
         right[r++] = token[i];
       }
       right[r] = NULL;
-      // Opening Pip
+      // Opening Pipe
       pipe(filedes);
 
 
@@ -216,17 +227,9 @@ int main()
 
       // If equals zero then we are in child process
       if(pid == 0){
-
-        // Opening writing end of pipe
-        dup2(filedes[1], STDOUT_FILENO);
-        close(filedes[0]);
-        close(filedes[1]);
-        execvp(left[0], left);
-
-      // Implementing redirect command
-      if (token[1] != NULL && strchr(token[1], redir) != NULL) {
-
-        int file = open(token[2], O_RDWR | O_CREAT);
+        
+      if(redir_index != -1){
+        int file = open(token[redir_index + 1], O_RDWR | O_CREAT);
     
           if (file < 0) {
 
@@ -237,11 +240,20 @@ int main()
 
     dup2(file, 1);
     close(file);
-
-    token[1] = NULL; 
-    token[2] = NULL; 
+    token[redir_index + 1] = NULL;
+    token[redir_index] = NULL;
 
       }
+      if(pipe_index != -1){
+        // Opening writing end of pipe
+        dup2(filedes[1], STDOUT_FILENO);
+        close(filedes[0]);
+        close(filedes[1]);
+        execvp(left[0], left);
+        perror("Left command");
+        exit(1);
+      }
+
         int ret = execvp(token[0], &token[0]);
 
         if(ret == -1){
@@ -251,6 +263,7 @@ int main()
       }
       else if(pid > 0){
 
+        if(pipe_index != -1){
         int pid2 = fork();
 
         if(pid2 == 0){
@@ -263,13 +276,17 @@ int main()
           execvp(right[0], right);
           perror("Right command");
           exit(1);
+          }
+        
         }
-
+        else{
         // Closing pipe and waiting
         close(filedes[0]);
         close(filedes[1]);
         waitpid(pid, NULL, 0);
         waitpid(pid2, NULL, 0);
+        }
+        
 
       }
       else{
