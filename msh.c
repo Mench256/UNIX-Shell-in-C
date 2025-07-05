@@ -184,7 +184,7 @@ int main()
       }
     }
     else{ // moved else to this position for testing
-      
+
       int redir_index = -1;
       for(int i = 0; i < token_count; i++){
         if(token[i] != NULL && strcmp(token[i], ">") == 0){
@@ -220,21 +220,23 @@ int main()
       // Opening pipe
       int filedes[2];
       pipe(filedes);
-
+      // Forking child
       pid_t pid1 = fork();
 
       if(pid1 == -1){
+        // Exiting if child failed to open
         perror("Fork Failed!");
         exit(EXIT_FAILURE);
       }
-      if(pid1 == 0){
+      if(pid1 == 0){ // Inside second child
+        // Closing read end
         close(filedes[0]);
         dup2(filedes[1], STDOUT_FILENO);
         close(filedes[1]);
 
         execvp(left[0], left);
       }
-
+      // Forking second child
       pid_t pid2 = fork();
 
       if(pid2 == -1){
@@ -244,16 +246,18 @@ int main()
         waitpid(pid1, NULL, 0);
         exit(EXIT_FAILURE);
       }
-      if(pid2 == 0){
+      if(pid2 == 0){ // Inside second child
+        // Closing write end
         close(filedes[1]);
         dup2(filedes[0], STDIN_FILENO);
         close(filedes[0]);
         
         execvp(right[0], right);
       }
-
+      // Closing read and write ends in parent
       close(filedes[0]);
       close(filedes[1]);
+      // Waiting
       waitpid(pid2, NULL, 0);
       waitpid(pid2, NULL, 0);
 
@@ -270,7 +274,7 @@ int main()
       if(pid == 0){
         
       if(redir_index != -1){
-
+        // Opening file for writing
         int file = open(token[redir_index + 1], O_RDWR | O_CREAT);
     
           if (file < 0){
@@ -279,9 +283,10 @@ int main()
             exit(0);
 
           }
-
+          // Redirecting Standard out to opened file
           dup2(file, 1);
           close(file);
+          // NULL terminating
           token[redir_index + 1] = NULL;
           token[redir_index] = NULL;
 
@@ -296,7 +301,9 @@ int main()
       }
   
       else if(pid > 0){
-        sleep(1);
+        // Waiting
+        int status;
+        waitpid(pid, &status, 0);
         
         }       
 

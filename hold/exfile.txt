@@ -1,5 +1,8 @@
-total 0
--rwxrwxrwx 1 tomas-menchaca tomas-menchaca 47 Jul  4 00:17 create.txt
+create.txt
+exfile.txt
+newfile.txt
+testfile.txt
+aca 47 Jul  4 00:17 create.txt
 -rwxrwxrwx 1 tomas-menchaca tomas-menchaca  0 Jul  3 22:25 exfile.txt
 -rwxrwxrwx 1 tomas-menchaca tomas-menchaca 36 Jun 25 19:14 newfile.txt
 -rwxrwxrwx 1 tomas-menchaca tomas-menchaca 47 Jul  3 22:34 testfile.txt
