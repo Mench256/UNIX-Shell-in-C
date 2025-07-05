@@ -1,3 +1,12 @@
+// ------------------------------------------------------------
+// Shell implementation for course assignment.
+// Base framework and initial parsing logic provided by instructor (MIT License).
+//
+// All additional functionality — including support for pipes (`|`),
+// output redirection (`>`), history recall (`!#`), process creation via fork/execvp,
+// and custom command logic — was implemented by Abraham Menchaca.
+// ------------------------------------------------------------
+
 // The MIT License (MIT)
 // 
 // Copyright (c) 2023 Trevor Bakker 
@@ -263,9 +272,6 @@ int main()
 
       continue;
     }
-    //else{
-
-      /*--------------------------------------------------------------------------------------------------------------------------*/
 
       // Handles not built in commands
       int pid = fork();
